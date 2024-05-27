@@ -50,22 +50,16 @@ export function StoreProfileDialog() {
     },
   })
 
-  const { mutate: updateProfileFn } = useMutation({
+  const { mutateAsync: updateProfileFn } = useMutation({
     mutationFn: updateProfile,
-    onSuccess(_, { name, description }) {
-      const cached = queryClient.getQueryData<GetManagerRestaurantResponse>([
-        'manager-restaurant',
-      ])
-
-      if (cached) {
-        queryClient.setQueryData<GetManagerRestaurantResponse>(
-          ['manager-restaurant'],
-          {
-            ...cached,
-            name,
-            description,
-          },
-        )
+    onMutate({ name, description }) {
+      // OnMutate dispara antes do retorno do back-end
+      const { cached } = updateManagedRestaurantCache({ name, description })
+      return { previousProfile: cached }
+    },
+    onError(_, __, context) {
+      if (context?.previousProfile) {
+        updateManagedRestaurantCache(context.previousProfile)
       }
     },
   })
@@ -75,7 +69,7 @@ export function StoreProfileDialog() {
       <DialogHeader>
         <DialogTitle>Perfil da loja</DialogTitle>
         <DialogDescription>
-          Atualize as informações do seu estabelecimento visivel ao seu cliete
+          Atualize as informações do seu estabelecimento visível ao seu cliente
         </DialogDescription>
       </DialogHeader>
 
@@ -94,7 +88,7 @@ export function StoreProfileDialog() {
             </Label>
             <Textarea
               className="col-span-3"
-              id="name"
+              id="description"
               {...register('description')}
             />
           </div>
@@ -120,5 +114,27 @@ export function StoreProfileDialog() {
     } catch (error) {
       toast.error('Erro ao atualizar o perfil!')
     }
+  }
+
+  function updateManagedRestaurantCache({
+    name,
+    description,
+  }: StoreProfileSchema) {
+    const cached = queryClient.getQueryData<GetManagerRestaurantResponse>([
+      'manager-restaurant',
+    ])
+
+    if (cached) {
+      queryClient.setQueryData<GetManagerRestaurantResponse>(
+        ['manager-restaurant'],
+        {
+          ...cached,
+          name,
+          description,
+        },
+      )
+    }
+
+    return { cached }
   }
 }
