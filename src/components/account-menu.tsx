@@ -4,6 +4,7 @@ import { Building, ChevronDown, LogOut } from 'lucide-react'
 import { getManagerRestaurant } from '@/api/get-managed-restaurant'
 import { getProfile } from '@/api/get-profile'
 
+import { StoreProfileDialog } from './store-profile-dialog'
 import { Button } from './ui/button'
 import { Dialog, DialogTrigger } from './ui/dialog'
 import {
@@ -15,18 +16,19 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 import { Skeleton } from './ui/skeleton'
-import { StoreProfileDialog } from './ui/store-profile-dialog'
 
 export function AccountMenu() {
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryFn: getProfile,
     queryKey: ['profile'],
+    staleTime: Infinity,
   })
 
   const { data: managerRestaurant, isLoading: isLoadingManagedRestaurant } =
     useQuery({
       queryFn: getManagerRestaurant,
       queryKey: ['manager-restaurant'],
+      staleTime: Infinity,
     })
 
   return (
